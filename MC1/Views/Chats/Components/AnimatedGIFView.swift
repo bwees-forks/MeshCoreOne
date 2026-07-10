@@ -4,10 +4,11 @@ import UIKit
 /// UIViewRepresentable that renders animated GIF data using UIImageView
 struct AnimatedGIFView: UIViewRepresentable {
   let image: UIImage
+  var contentMode: UIView.ContentMode = .scaleAspectFit
 
   func makeUIView(context: Context) -> UIImageView {
     let imageView = UIImageView()
-    imageView.contentMode = .scaleAspectFit
+    imageView.contentMode = contentMode
     imageView.clipsToBounds = true
     imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)

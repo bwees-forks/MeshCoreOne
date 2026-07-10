@@ -65,13 +65,13 @@ private struct GIFContentView: View {
   var body: some View {
     Group {
       if isPlaying {
-        AnimatedGIFView(image: image)
+        AnimatedGIFView(image: image, contentMode: isEmbedded ? .scaleAspectFill : .scaleAspectFit)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .allowsHitTesting(false)
       } else {
         Image(uiImage: staticFrame)
           .resizable()
-          .aspectRatio(contentMode: isEmbedded ? .fit : .fill)
+          .aspectRatio(contentMode: .fill)
       }
     }
     .frame(
@@ -125,7 +125,7 @@ private struct StaticImageContentView: View {
   var body: some View {
     Image(uiImage: image)
       .resizable()
-      .aspectRatio(contentMode: isEmbedded ? .fit : .fill)
+      .aspectRatio(contentMode: .fill)
       .frame(
         width: isEmbedded ? nil : displaySize.width,
         height: isEmbedded ? nil : displaySize.height

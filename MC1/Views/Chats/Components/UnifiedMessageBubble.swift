@@ -100,8 +100,7 @@ struct UnifiedMessageBubble: View, Equatable {
               layout: layout,
               bubbleColor: resolvedBubbleColor,
               timeColor: footerTimeColor,
-              callbacks: callbacks,
-              imageResolver: imageResolver
+              callbacks: callbacks
             )
             .shadow(
               color: Color.black.opacity(isLongPressing ? liftContactShadowOpacity : 0),
@@ -116,6 +115,21 @@ struct UnifiedMessageBubble: View, Equatable {
               y: liftAmbientShadowYOffset
             )
           )
+
+          // Inline image renders as its own sub-bubble directly below the box —
+          // above the siblings so it stays adjacent to the text it accompanies
+          // (reactions and map previews follow).
+          if let inlineImage = layout.inlineImage {
+            bubbleActionsLongPress(
+              InlineImageFragmentView(
+                inlineImage: inlineImage,
+                isOutgoing: item.envelope.isOutgoing,
+                imageResolver: imageResolver,
+                onTap: { callbacks.onImageTap?() },
+                onRetry: { callbacks.onRetryInlineImage?() }
+              )
+            )
+          }
 
           ForEach(Array(layout.siblings.enumerated()), id: \.offset) { _, fragment in
             siblingFragmentView(fragment)

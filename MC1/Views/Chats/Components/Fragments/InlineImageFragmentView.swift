@@ -2,8 +2,11 @@ import MC1Services
 import SwiftUI
 import UIKit
 
-/// Fragment-level view that renders the inline-image slot of a message bubble.
-/// Reserves correct height before bytes arrive using `InlineImage.cachedAspect`
+/// Fragment-level view that renders the inline image as its own sub-bubble
+/// below the text box, mirroring the chat map thumbnail. The card is a
+/// fixed-height box (`InlineImageLayout`) whose width tracks the image aspect
+/// but is clamped so a wide image crops rather than resizing the row. The box
+/// is reserved before the bytes arrive using `InlineImage.cachedAspect`
 /// (falling back to 16:9), so the bubble does not jump when the image loads.
 struct InlineImageFragmentView: View {
   let inlineImage: InlineImage
@@ -13,11 +16,8 @@ struct InlineImageFragmentView: View {
   let onRetry: () -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @ScaledMetric(relativeTo: .body) private var minHeight: CGFloat = RichPreviewMetrics.minHeroHeight
-  @ScaledMetric(relativeTo: .body) private var maxHeight: CGFloat = RichPreviewMetrics.maxHeroHeight
 
   private static let crossFadeDuration: Double = 0.2
-  private static let skeletonCornerRadius: CGFloat = RichPreviewMetrics.cornerRadius
   private static let retryIconSpacing: CGFloat = 8
   private static let retryForegroundOpacity: Double = 0.7
 
@@ -26,26 +26,22 @@ struct InlineImageFragmentView: View {
   }
 
   var body: some View {
-    // No card chrome here: the inline image is edge-to-edge in the bubble
-    // box, which supplies the rounding and the surface, so the reserved
-    // frame carries no corner clip or background of its own.
-    RichPreviewCard(
-      aspect: CGFloat(aspect),
-      minHeight: minHeight,
-      maxHeight: maxHeight
-    ) {
-      ZStack {
-        PreviewSkeleton()
-          .opacity(isLoaded ? 0 : 1)
+    ZStack {
+      PreviewSkeleton(cornerRadius: InlineImageLayout.cornerRadius)
+        .opacity(isLoaded ? 0 : 1)
 
-        loadedLayer
-          .opacity(isLoaded ? 1 : 0)
+      loadedLayer
+        .opacity(isLoaded ? 1 : 0)
 
-        if case .failed = inlineImage.state {
-          retryLayer
-        }
+      if case .failed = inlineImage.state {
+        retryLayer
       }
     }
+    .frame(
+      width: InlineImageLayout.width(forAspect: aspect),
+      height: InlineImageLayout.height
+    )
+    .clipShape(.rect(cornerRadius: InlineImageLayout.cornerRadius))
     .animation(
       reduceMotion ? nil : .easeOut(duration: Self.crossFadeDuration),
       value: isLoaded
@@ -78,7 +74,7 @@ struct InlineImageFragmentView: View {
   private var retryLayer: some View {
     Button(action: onRetry) {
       ZStack {
-        RoundedRectangle(cornerRadius: Self.skeletonCornerRadius, style: .continuous)
+        RoundedRectangle(cornerRadius: InlineImageLayout.cornerRadius, style: .continuous)
           .fill(Color(.tertiarySystemFill))
         HStack(spacing: Self.retryIconSpacing) {
           Image(systemName: "arrow.clockwise")

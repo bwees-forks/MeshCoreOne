@@ -2,12 +2,14 @@ import Foundation
 import MC1Services
 
 /// The single source of truth for which fragments render inside the colored
-/// bubble box versus as siblings below it.
+/// bubble box versus below it.
 ///
-/// Box-vs-sibling rule: `.text` and `.inlineImage` render inside the box
-/// (`BubbleFragmentStack`); every other kind renders as a sibling beneath the
-/// box (`UnifiedMessageBubble`), preserving document order. Adding a fragment
-/// kind is one decision here, not a fan-out across the bubble view bodies.
+/// Placement rule: `.text` fills the box (`BubbleFragmentStack`). `.inlineImage`
+/// renders as its own fixed-size card immediately below the box, ahead of the
+/// siblings, so it stays adjacent to the text it accompanies. Every other kind
+/// renders as a sibling beneath that (`UnifiedMessageBubble`), preserving
+/// document order. Adding a fragment kind is one decision here, not a fan-out
+/// across the bubble view bodies.
 ///
 /// This is render partitioning, not model data: it is a pure function of
 /// `item.content`, computed once in `MessageBubbleView.body` and passed down as
